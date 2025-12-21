@@ -1,0 +1,5 @@
+#! /bin/bash
+
+for p in $(dpkg-query -W -f='${Package}\n'); do
+   apt-cache policy "$p" | grep -q 'developer.download.nvidia.com' && echo "$p $(dpkg-query -W -f='${Version}' "$p")"
+done

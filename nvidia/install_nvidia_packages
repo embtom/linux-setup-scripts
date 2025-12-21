@@ -1,0 +1,136 @@
+#!/usr/bin/bash
+set -euo pipefail
+
+VERSION="580.105.08-1"
+
+echo "Installing NVIDIA driver stack version ${VERSION}"
+
+# -----------------------------
+# 1. Core NVIDIA driver stack
+# -----------------------------
+sudo apt-get install \
+    nvidia-driver=${VERSION} \
+    nvidia-driver-libs=${VERSION} \
+    nvidia-kernel-dkms=${VERSION} \
+    nvidia-kernel-support=${VERSION} \
+    xserver-xorg-video-nvidia=${VERSION} \
+    libegl-nvidia0=${VERSION} \
+    libgles-nvidia1=${VERSION} \
+    libgles-nvidia2=${VERSION} \
+    libnvidia-eglcore=${VERSION} \
+    libglx-nvidia0=${VERSION} \
+    libnvidia-glcore=${VERSION} \
+    libnvidia-allocator1=${VERSION} \
+    libnvidia-api1=${VERSION} \
+    libnvidia-cfg1=${VERSION} \
+    libnvidia-rtcore=${VERSION} \
+    libnvidia-gpucomp=${VERSION} \
+    libnvidia-ngx1=${VERSION} \
+    libnvidia-vksc-core=${VERSION} \
+    libnvidia-ml1=${VERSION} \
+    nvidia-egl-icd=${VERSION} \
+    libnvidia-glvkspirv=${VERSION} \
+    nvidia-vulkan-icd=${VERSION} \
+    nvidia-vdpau-driver=${VERSION} \
+    firmware-nvidia-gsp=${VERSION} \
+    nvidia-modprobe=${VERSION} \
+    --solver=3.0
+
+# -----------------------------
+# 2. NVIDIA settings / X control
+# -----------------------------
+sudo apt-get install \
+    nvidia-settings=${VERSION} \
+    libxnvctrl0:amd64=${VERSION} \
+    --solver=3.0
+
+# -----------------------------
+# 3. Persistence daemon
+# -----------------------------
+sudo apt-get install \
+    nvidia-persistenced \
+    --solver=3.0
+
+# -----------------------------
+# 4. Hold driver packages
+# -----------------------------
+sudo apt-mark hold \
+    nvidia-driver \
+    nvidia-driver-libs \
+    nvidia-kernel-dkms \
+    nvidia-kernel-support \
+    xserver-xorg-video-nvidia \
+    libegl-nvidia0 \
+    libgles-nvidia1 \
+    libgles-nvidia2 \
+    libnvidia-eglcore \
+    libglx-nvidia0 \
+    libnvidia-glcore \
+    libnvidia-allocator1 \
+    libnvidia-api1 \
+    libnvidia-cfg1 \
+    libnvidia-rtcore \
+    libnvidia-gpucomp \
+    libnvidia-ngx1 \
+    libnvidia-vksc-core \
+    libnvidia-ml1 \
+    nvidia-egl-icd \
+    libnvidia-glvkspirv \
+    nvidia-vulkan-icd \
+    nvidia-vdpau-driver \
+    firmware-nvidia-gsp \
+    nvidia-modprobe \
+    nvidia-settings \
+    libxnvctrl0
+
+# -----------------------------
+# 5. CUDA / compute stack
+# -----------------------------
+sudo apt-get install \
+    cuda-drivers=${VERSION} \
+    nvidia-kernel-support=${VERSION} \
+    nvidia-driver-cuda=${VERSION} \
+    libcudadebugger1=${VERSION} \
+    libnvcuvid1=${VERSION} \
+    libnvidia-fbc1=${VERSION} \
+    libnvoptix1=${VERSION} \
+    libnvidia-encode1=${VERSION} \
+    libnvidia-opticalflow1=${VERSION} \
+    libnvidia-present=${VERSION} \
+    libnvidia-sandboxutils=${VERSION} \
+    nvidia-opencl-icd=${VERSION} \
+    nvidia-persistenced=${VERSION} \
+    libcuda1=${VERSION} \
+    libnvidia-nvvm4=${VERSION} \
+    libnvidia-nvvm704=${VERSION} \
+    libnvidia-ptxjitcompiler1=${VERSION} \
+    libnvidia-pkcs11-openssl3=${VERSION} \
+    libnvidia-cfg1=${VERSION} \
+    --solver=3.0
+
+# -----------------------------
+# 6. Hold CUDA packages
+# -----------------------------
+sudo apt-mark hold \
+    cuda-drivers \
+    nvidia-kernel-support \
+    nvidia-driver-cuda \
+    libcudadebugger1 \
+    libnvcuvid1 \
+    libnvidia-fbc1 \
+    libnvoptix1 \
+    libnvidia-encode1 \
+    libnvidia-opticalflow1 \
+    libnvidia-present \
+    libnvidia-sandboxutils \
+    nvidia-opencl-icd \
+    nvidia-persistenced \
+    libcuda1 \
+    libnvidia-nvvm4 \
+    libnvidia-nvvm704 \
+    libnvidia-ptxjitcompiler1 \
+    libnvidia-pkcs11-openssl3 \
+    libnvidia-cfg1
+
+echo
+echo "NVIDIA ${VERSION} installation completed successfully."
