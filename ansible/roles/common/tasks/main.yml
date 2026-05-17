@@ -1,4 +1,35 @@
 ---
+- name: Create /etc/apt/keyrings directory
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Download NodeSource GPG key
+  ansible.builtin.get_url:
+    url: https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
+    dest: /tmp/nodesource-repo.gpg.key
+    mode: "0644"
+  become: true
+
+- name: Dearmor NodeSource GPG key
+  ansible.builtin.command:
+    cmd: gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg /tmp/nodesource-repo.gpg.key
+    creates: /etc/apt/keyrings/nodesource.gpg
+  become: true
+
+- name: Add NodeSource apt repository
+  ansible.builtin.deb822_repository:
+    name: nodesource
+    types: deb
+    uris: https://deb.nodesource.com/node_20.x
+    suites: nodistro
+    components: main
+    signed_by: /etc/apt/keyrings/nodesource.gpg
+    state: present
+  become: true
+
 - name: Update apt package cache
   ansible.builtin.apt:
     update_cache: true
@@ -13,6 +44,7 @@
       - curl
       - git
       - just
+      - nodejs
       - shfmt
       - wget
     state: present
