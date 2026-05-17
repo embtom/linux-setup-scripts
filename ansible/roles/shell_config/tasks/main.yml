@@ -1,0 +1,105 @@
+---
+- name: Install fish shell and shell tools
+  ansible.builtin.apt:
+    name:
+      - fish
+      - direnv
+      - fzf
+      - lsd
+      - starship
+      - unzip
+      - fontconfig
+    state: present
+  become: true
+
+- name: Install pyenv dependencies
+  ansible.builtin.apt:
+    name:
+      - make
+      - build-essential
+      - libssl-dev
+      - zlib1g-dev
+      - libbz2-dev
+      - libreadline-dev
+      - libsqlite3-dev
+      - libncursesw5-dev
+      - xz-utils
+      - tk-dev
+      - libxml2-dev
+      - libxmlsec1-dev
+      - libffi-dev
+      - liblzma-dev
+    state: present
+  become: true
+
+- name: Install pyenv
+  ansible.builtin.git:
+    repo: https://github.com/pyenv/pyenv.git
+    dest: "{{ home_dir }}/.pyenv"
+    version: master
+    update: false
+
+- name: Install pyenv-virtualenv plugin
+  ansible.builtin.git:
+    repo: https://github.com/pyenv/pyenv-virtualenv.git
+    dest: "{{ home_dir }}/.pyenv/plugins/pyenv-virtualenv"
+    version: master
+    update: false
+
+- name: Ensure fish config directory exists
+  ansible.builtin.file:
+    path: "{{ home_dir }}/.config/fish"
+    state: directory
+    owner: "{{ ansible_user }}"
+    mode: "0755"
+
+- name: Deploy config.fish
+  ansible.builtin.copy:
+    src: config.fish
+    dest: "{{ home_dir }}/.config/fish/config.fish"
+    owner: "{{ ansible_user }}"
+    mode: "0644"
+
+- name: Deploy starship gruvbox-rainbow preset
+  ansible.builtin.command:
+    cmd: starship preset gruvbox-rainbow -o {{ home_dir }}/.config/starship.toml
+    creates: "{{ home_dir }}/.config/starship.toml"
+
+- name: Ensure fish is listed in /etc/shells
+  ansible.builtin.lineinfile:
+    path: /etc/shells
+    line: /usr/bin/fish
+    create: false
+  become: true
+
+- name: Set fish as default shell for user (LDAP/SSSD compatible)
+  ansible.builtin.command:
+    cmd: chsh -s /usr/bin/fish
+  register: chsh_result
+  changed_when: chsh_result.rc == 0
+  failed_when: chsh_result.rc != 0
+  become: true
+
+- name: Ensure user fonts directory exists
+  ansible.builtin.file:
+    path: "{{ home_dir }}/.local/share/fonts/NerdFonts"
+    state: directory
+    mode: "0755"
+
+- name: Download Hack Nerd Font
+  ansible.builtin.get_url:
+    url: https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Hack.zip
+    dest: /tmp/Hack.zip
+    mode: "0644"
+
+- name: Extract Hack Nerd Font
+  ansible.builtin.unarchive:
+    src: /tmp/Hack.zip
+    dest: "{{ home_dir }}/.local/share/fonts/NerdFonts"
+    remote_src: true
+    creates: "{{ home_dir }}/.local/share/fonts/NerdFonts/HackNerdFont-Regular.ttf"
+
+- name: Refresh font cache
+  ansible.builtin.command:
+    cmd: fc-cache -f "{{ home_dir }}/.local/share/fonts"
+  changed_when: true
