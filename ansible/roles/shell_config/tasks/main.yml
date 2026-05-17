@@ -79,6 +79,22 @@
     cmd: starship preset gruvbox-rainbow -o {{ home_dir }}/.config/starship.toml
     creates: "{{ home_dir }}/.config/starship.toml"
 
+- name: Enable hostname in starship config
+  ansible.builtin.blockinfile:
+    path: "{{ home_dir }}/.config/starship.toml"
+    marker: "# {mark} ANSIBLE MANAGED - hostname"
+    block: |
+      [hostname]
+      ssh_only = false
+      format = '[$hostname ](bg:color_orange fg:color_fg0)'
+      disabled = false
+
+- name: Add hostname to starship format string
+  ansible.builtin.lineinfile:
+    path: "{{ home_dir }}/.config/starship.toml"
+    insertafter: '\$username\\'
+    line: '$hostname\'
+
 - name: Ensure fish is listed in /etc/shells
   ansible.builtin.lineinfile:
     path: /etc/shells
