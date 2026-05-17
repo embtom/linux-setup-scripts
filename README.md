@@ -65,3 +65,24 @@ run-ansible            # runs the workstation playbook
 requirements.txt       # pip packages (pipx, podman-compose)
 requirements.yml       # Ansible collections
 ```
+
+## NVIDIA (manual scripts)
+
+The `nvidia/` folder contains standalone shell scripts for setting up the NVIDIA driver stack on Debian 12. These are **not** part of the Ansible playbook and must be run manually.
+
+| Script | Purpose |
+|---|---|
+| `install_nvidia_keyring` | downloads and installs the CUDA apt keyring from NVIDIA |
+| `install_nvidia_packages` | installs the full NVIDIA driver stack at a pinned version |
+| `list_installed_nvidia_packages` | lists currently installed NVIDIA packages and their versions |
+| `installed_nvidia_packages_version_580` | reference list of all packages installed for driver version 580 |
+
+### Usage
+
+```bash
+# Step 1 — add the NVIDIA apt repository keyring
+sudo ./nvidia/install_nvidia_keyring
+
+# Step 2 — install the driver stack (edit VERSION in the script first if needed)
+sudo ./nvidia/install_nvidia_packages
+```
