@@ -1,0 +1,64 @@
+---
+- name: Load VS Code extensions list
+  ansible.builtin.include_vars:
+    file: extensions.json
+
+- name: Install dependencies for VS Code repo
+  ansible.builtin.apt:
+    name:
+      - wget
+      - gpg
+      - apt-transport-https
+    state: present
+  become: true
+
+- name: Download Microsoft GPG key
+  ansible.builtin.get_url:
+    url: https://packages.microsoft.com/keys/microsoft.asc
+    dest: /tmp/microsoft.asc
+    mode: "0644"
+
+- name: Dearmor and install Microsoft GPG key
+  ansible.builtin.shell:
+    cmd: gpg --dearmor < /tmp/microsoft.asc > /usr/share/keyrings/microsoft.gpg
+    creates: /usr/share/keyrings/microsoft.gpg
+  become: true
+
+- name: Add VS Code apt repository (DEB822 format)
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/vscode.sources
+    mode: "0644"
+    content: |
+      Types: deb
+      URIs: https://packages.microsoft.com/repos/code
+      Suites: stable
+      Components: main
+      Architectures: amd64
+      Signed-By: /usr/share/keyrings/microsoft.gpg
+  become: true
+
+- name: Install VS Code
+  ansible.builtin.apt:
+    name: code
+    state: present
+    update_cache: true
+  become: true
+
+- name: Ensure VS Code user config directory exists
+  ansible.builtin.file:
+    path: "{{ home_dir }}/.config/Code/User"
+    state: directory
+    mode: "0755"
+
+- name: Deploy VS Code settings
+  ansible.builtin.copy:
+    src: settings.json
+    dest: "{{ home_dir }}/.config/Code/User/settings.json"
+    mode: "0644"
+    force: true
+
+- name: Install VS Code extensions
+  ansible.builtin.command:
+    cmd: code --install-extension {{ item }} --force
+  loop: "{{ vscode_extensions }}"
+  changed_when: false

@@ -1,0 +1,74 @@
+{
+    "workbench.colorTheme": "Solarized Dark",
+    "workbench.iconTheme": "material-icon-theme",
+    "window.title": "${rootName}${separator}${rootPath}",
+    "security.workspace.trust.untrustedFiles": "open",
+
+    "editor.fontFamily": "Hack Nerd Font Mono",
+    "editor.fontLigatures": false,
+    "editor.semanticHighlighting.enabled": true,
+
+    "terminal.integrated.profiles.linux": {
+        "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+        },
+        "zsh": {
+            "path": "zsh"
+        },
+        "fish": {
+            "path": "/usr/bin/fish"
+        },
+        "tmux": {
+            "path": "tmux",
+            "icon": "terminal-tmux"
+        },
+        "pwsh": {
+            "path": "pwsh",
+            "icon": "terminal-powershell"
+        }
+    },
+    "terminal.integrated.automationProfile.linux": {
+        "path": "/bin/bash"
+    },
+    "terminal.integrated.defaultProfile.linux": "fish",
+    "terminal.integrated.fontFamily": "Hack Nerd Font Mono",
+
+    "docker.dockerPath": "/usr/bin/podman",
+    "docker.composeCommand": "/usr/bin/podman-compose",
+    "docker.environment": {
+        "DOCKER_HOST": "unix:///run/user/10000/podman/podman.sock"
+    },
+    "docker.extension.enableComposeLanguageServer": false,
+    "dev.containers.dockerPath": "/usr/bin/podman",
+    "dev.containers.dockerComposePath": "podman-compose",
+    "containers.containerCommand": "/usr/bin/podman",
+    "containers.composeCommand": "/usr/bin/podman-compose",
+    "containers.environment": {
+        "DOCKER_HOST": "unix:///run/user/10000/podman/podman.sock"
+    },
+    "containers.containerClient": "com.microsoft.visualstudio.containers.podman",
+    "containers.orchestratorClient": "com.microsoft.visualstudio.orchestrators.podmancompose",
+    "remote.autoForwardPortsSource": "hybrid",
+    "sonarlint.automaticAnalysis": true,
+
+    "[dockerfile]": {
+        "editor.defaultFormatter": "ms-azuretools.vscode-containers"
+    },
+    "[dockercompose]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+        "editor.autoIndent": "advanced",
+        "editor.quickSuggestions": {
+            "other": true,
+            "comments": false,
+            "strings": true
+        },
+        "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+    "[github-actions-workflow]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+
+    "chat.viewSessions.orientation": "stacked"
+}

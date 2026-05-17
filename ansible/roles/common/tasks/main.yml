@@ -8,8 +8,12 @@
 - name: Install packages
   ansible.builtin.apt:
     name:
+      - build-essential
+      - cmake
       - curl
-      - wget
       - git
+      - just
+      - shfmt
+      - wget
     state: present
   become: true

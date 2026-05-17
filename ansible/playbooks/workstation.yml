@@ -10,3 +10,5 @@
       tags: [podman]
     - role: shell_config
       tags: [shell]
+    - role: vscode
+      tags: [vscode]
