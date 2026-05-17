@@ -1,0 +1,41 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "ansible: run all roles",
+      "type": "shell",
+      "command": "${workspaceFolder}/run-ansible",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ansible: run by tag",
+      "type": "shell",
+      "command": "${workspaceFolder}/run-ansible ${input:roleTag}",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true
+      },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "roleTag",
+      "type": "pickString",
+      "description": "Select role to run",
+      "options": [
+        "common",
+        "shell",
+        "podman",
+        "vscode",
+        "git"
+      ]
+    }
+  ]
+}

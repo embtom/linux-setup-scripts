@@ -12,3 +12,5 @@
       tags: [shell]
     - role: vscode
       tags: [vscode]
+    - role: git_config
+      tags: [git]

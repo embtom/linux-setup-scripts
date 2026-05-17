@@ -2,7 +2,14 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+TAG="${1:-}"
+
 (
     cd "${SCRIPT_DIR}/ansible"
-    ansible-playbook -i inventories/production/hosts.yml playbooks/workstation.yml --ask-become-pass
+    if [[ -n "${TAG}" ]]; then
+        ansible-playbook -i inventories/production/hosts.yml playbooks/workstation.yml --ask-become-pass --tags "${TAG}"
+    else
+        ansible-playbook -i inventories/production/hosts.yml playbooks/workstation.yml --ask-become-pass
+    fi
 )

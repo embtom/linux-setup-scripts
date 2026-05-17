@@ -1,0 +1,25 @@
+[alias]
+	logline = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+	rnew = "!f(){ \
+		git fetch --prune >/dev/null 2>&1 && \
+		git for-each-ref --color=always \
+		  --sort='-committerdate' \
+		  --count=\"${1:-10}\" \
+		  --format='%(color:red)%(refname:short)%(color:reset) - %(color:yellow)%(committerdate:relative)%(color:reset) | %(color:green)<%(authorname)>%(color:reset) | %(color:bold blue)%(subject)%(color:reset)' \
+		  refs/remotes/origin --exclude='refs/remotes/origin/HEAD'; \
+	}; f"
+	max-size = "!git rev-list --objects --all \
+		| git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize) %(rest)' \
+		| sed -n 's/^blob //p' \
+		| sort --numeric-sort --key=2 \
+		| cut -c 1-12,41- \
+		| $(command -v gnumfmt || echo numfmt) \
+			--field=2 \
+			--to=iec-i \
+			--suffix=B \
+			--padding=7 \
+			--round=nearest"
+[diff]
+	tool = meld
+[push]
+	autoSetupRemote = true

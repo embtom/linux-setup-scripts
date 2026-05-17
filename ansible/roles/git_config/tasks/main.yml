@@ -1,0 +1,29 @@
+---
+- name: Install meld diff tool
+  ansible.builtin.apt:
+    name: meld
+    state: present
+  become: true
+
+- name: Ensure git config directory exists
+  ansible.builtin.file:
+    path: "{{ home_dir }}/.config/git"
+    state: directory
+    owner: "{{ ansible_user }}"
+    mode: "0755"
+
+- name: Deploy ansible gitconfig snippet
+  ansible.builtin.copy:
+    src: gitconfig
+    dest: "{{ home_dir }}/.config/git/ansible_gitconfig"
+    owner: "{{ ansible_user }}"
+    mode: "0644"
+
+- name: Include ansible gitconfig snippet via git include
+  ansible.builtin.blockinfile:
+    path: "{{ home_dir }}/.gitconfig"
+    create: true
+    marker: "; {mark} ANSIBLE MANAGED BLOCK"
+    block: |
+      [include]
+          path = {{ home_dir }}/.config/git/ansible_gitconfig
