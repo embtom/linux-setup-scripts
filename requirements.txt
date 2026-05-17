@@ -1,0 +1,2 @@
+pipx==1.11.1
+podman-compose==1.5.0

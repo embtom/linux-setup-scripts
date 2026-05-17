@@ -1,0 +1,12 @@
+---
+- name: Configure workstation
+  hosts: workstations
+  become: false
+
+  roles:
+    - role: common
+      tags: [common]
+    - role: podman
+      tags: [podman]
+    - role: shell_config
+      tags: [shell, fish, starship]
