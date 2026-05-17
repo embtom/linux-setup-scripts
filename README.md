@@ -6,9 +6,11 @@ Ansible-based workstation setup for Debian systems.
 
 | Role | What it does |
 |---|---|
-| `common` | installs base packages (curl, wget, git, …) |
+| `common` | installs base packages (curl, wget, git, Node.js LTS, …) |
 | `shell_config` | fish shell, starship prompt, direnv, fzf, lsd, pyenv, Hack Nerd Font, Konsole profile |
 | `podman` | rootless podman, podman-compose, user socket + linger, containers.conf |
+| `vscode` | VS Code apt repo, installation, settings and extensions |
+| `git_config` | global git configuration (`.gitconfig`) |
 
 ## Requirements
 
@@ -42,7 +44,7 @@ ansible-playbook -i inventories/production/hosts.yml playbooks/workstation.yml \
   --ask-become-pass --tags shell
 ```
 
-Available tags: `common`, `shell`, `podman`
+Available tags: `common`, `shell`, `podman`, `vscode`, `git`
 
 ## Repository layout
 
@@ -59,6 +61,8 @@ ansible/
     common/
     shell_config/
     podman/
+    vscode/
+    git_config/
 install-requirements   # installs python3, pip, venv
 install-ansible        # installs ansible-core + collections
 run-ansible            # runs the workstation playbook
