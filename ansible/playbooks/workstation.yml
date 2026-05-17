@@ -9,4 +9,4 @@
     - role: podman
       tags: [podman]
     - role: shell_config
-      tags: [shell, fish, starship]
+      tags: [shell]

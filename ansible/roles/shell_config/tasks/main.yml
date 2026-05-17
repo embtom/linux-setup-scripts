@@ -60,6 +60,20 @@
     owner: "{{ ansible_user }}"
     mode: "0644"
 
+- name: Ensure fish completions directory exists
+  ansible.builtin.file:
+    path: "{{ home_dir }}/.config/fish/completions"
+    state: directory
+    owner: "{{ ansible_user }}"
+    mode: "0755"
+
+- name: Deploy podman-compose fish completions
+  ansible.builtin.copy:
+    src: podman-compose.fish
+    dest: "{{ home_dir }}/.config/fish/completions/podman-compose.fish"
+    owner: "{{ ansible_user }}"
+    mode: "0644"
+
 - name: Deploy starship gruvbox-rainbow preset
   ansible.builtin.command:
     cmd: starship preset gruvbox-rainbow -o {{ home_dir }}/.config/starship.toml
@@ -103,3 +117,32 @@
   ansible.builtin.command:
     cmd: fc-cache -f "{{ home_dir }}/.local/share/fonts"
   changed_when: true
+
+- name: Check if KDE Konsole is installed
+  ansible.builtin.stat:
+    path: /usr/bin/konsole
+  register: konsole_binary
+
+- name: Configure Konsole
+  when: konsole_binary.stat.exists
+  block:
+    - name: Ensure Konsole profiles directory exists
+      ansible.builtin.file:
+        path: "{{ home_dir }}/.local/share/konsole"
+        state: directory
+        mode: "0755"
+
+    - name: Deploy Konsole profile with Hack Nerd Font
+      ansible.builtin.copy:
+        src: fish-shell.profile
+        dest: "{{ home_dir }}/.local/share/konsole/fish-shell.profile"
+        mode: "0644"
+
+    - name: Set Konsole default profile
+      ansible.builtin.lineinfile:
+        path: "{{ home_dir }}/.config/konsolerc"
+        regexp: '^DefaultProfile='
+        line: 'DefaultProfile=fish-shell.profile'
+        insertafter: '^\[Desktop Entry\]'
+        create: true
+        mode: "0644"
