@@ -56,8 +56,13 @@
     mode: "0644"
     force: true
 
-- name: Install VS Code extensions
-  ansible.builtin.command:
-    cmd: code --install-extension {{ item }} --force
-  loop: "{{ vscode_extensions }}"
+- name: Check installed extensions
+  ansible.builtin.command: code --list-extensions
+  register: vscode_ext_list
   changed_when: false
+
+- name: Install missing extensions
+  ansible.builtin.command: "code --install-extension {{ item }}"
+  loop: "{{ vscode_extensions }}"
+  when: item not in vscode_ext_list.stdout_lines
+  changed_when: true

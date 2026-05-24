@@ -105,9 +105,9 @@
 - name: Set fish as default shell for user (LDAP/SSSD compatible)
   ansible.builtin.command:
     cmd: chsh -s /usr/bin/fish
-  register: chsh_result
-  changed_when: chsh_result.rc == 0
-  failed_when: chsh_result.rc != 0
+  register: shell_config_chsh_result
+  changed_when: shell_config_chsh_result.rc == 0
+  failed_when: shell_config_chsh_result.rc != 0
   become: true
 
 - name: Ensure user fonts directory exists
@@ -116,9 +116,12 @@
     state: directory
     mode: "0755"
 
-- name: Download Hack Nerd Font
+- name: Download Nerd Font
+  vars:
+    nerd_font_url: >
+      https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Hack.zip
   ansible.builtin.get_url:
-    url: https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Hack.zip
+    url: "{{ nerd_font_url }}"
     dest: /tmp/Hack.zip
     mode: "0644"
 
@@ -137,10 +140,10 @@
 - name: Check if KDE Konsole is installed
   ansible.builtin.stat:
     path: /usr/bin/konsole
-  register: konsole_binary
+  register: shell_config_konsole_binary
 
 - name: Configure Konsole
-  when: konsole_binary.stat.exists
+  when: shell_config_konsole_binary.stat.exists
   block:
     - name: Ensure Konsole profiles directory exists
       ansible.builtin.file:

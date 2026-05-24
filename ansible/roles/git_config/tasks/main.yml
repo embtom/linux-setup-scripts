@@ -27,3 +27,4 @@
     block: |
       [include]
           path = {{ home_dir }}/.config/git/ansible_gitconfig
+    mode: "0644"

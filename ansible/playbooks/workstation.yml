@@ -6,6 +6,8 @@
   roles:
     - role: common
       tags: [common]
+    - role: systemd
+      tags: [systemd]
     - role: podman
       tags: [podman]
     - role: shell_config
