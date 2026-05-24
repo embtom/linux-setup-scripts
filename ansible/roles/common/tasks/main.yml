@@ -14,8 +14,11 @@
   become: true
 
 - name: Dearmor NodeSource GPG key
-  ansible.builtin.command:
-    cmd: gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg /tmp/nodesource-repo.gpg.key
+  ansible.builtin.command: >
+    gpg --dearmor
+    -o /etc/apt/keyrings/nodesource.gpg
+    /tmp/nodesource-repo.gpg.key
+  args:
     creates: /etc/apt/keyrings/nodesource.gpg
   become: true
 

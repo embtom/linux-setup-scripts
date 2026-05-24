@@ -12,5 +12,13 @@ if ! grep -qF "${USER_BIN}" "${HOME}/.bashrc"; then
     echo "Added ${USER_BIN} to ~/.bashrc"
 fi
 
-pipx upgrade ansible-core 2>/dev/null || pipx install ansible-core
+PIPX_PACKAGES=(
+    ansible-core
+    ansible-lint
+    yamllint
+)
+
+for package in "${PIPX_PACKAGES[@]}"; do
+    pipx upgrade "${package}" 2>/dev/null || pipx install "${package}"
+done
 ansible-galaxy collection install -r "${SCRIPT_DIR}/requirements.yml" --upgrade
