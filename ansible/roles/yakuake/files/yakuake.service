@@ -1,0 +1,15 @@
+[Unit]
+Description=Yakuake Drop-down Terminal
+After=plasma-workspace.target graphical-session.target xdg-desktop-autostart.target
+Wants=plasma-workspace.target
+
+[Service]
+ExecStart=/usr/bin/yakuake
+Restart=always
+RestartSec=5
+Environment=DISPLAY=:0
+Environment=XDG_SESSION_TYPE=x11
+Environment=XDG_CURRENT_DESKTOP=KDE
+
+[Install]
+WantedBy=plasma-workspace.target

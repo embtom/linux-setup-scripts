@@ -78,9 +78,11 @@
       "options": [
         "common",
         "shell",
+        "systemd",
         "podman",
         "vscode",
-        "git"
+        "git",
+        "yakuake"
       ]
     }
   ]

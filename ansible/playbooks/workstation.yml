@@ -16,3 +16,5 @@
       tags: [vscode]
     - role: git_config
       tags: [git]
+    - role: yakuake
+      tags: [yakuake]

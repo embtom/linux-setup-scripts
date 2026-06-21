@@ -1,0 +1,32 @@
+---
+- name: Install yakuake
+  ansible.builtin.apt:
+    name: yakuake
+    state: present
+  become: true
+
+- name: Create systemd user directory
+  ansible.builtin.file:
+    path: "{{ home_dir }}/.config/systemd/user"
+    state: directory
+    mode: "0755"
+
+- name: Install yakuake systemd user service
+  ansible.builtin.copy:
+    src: yakuake.service
+    dest: "{{ home_dir }}/.config/systemd/user/yakuake.service"
+    mode: "0644"
+
+- name: Install yakuake config
+  ansible.builtin.copy:
+    src: yakuakerc
+    dest: "{{ home_dir }}/.config/yakuakerc"
+    mode: "0644"
+
+- name: Enable and start yakuake user service
+  ansible.builtin.systemd:
+    name: yakuake.service
+    scope: user
+    enabled: true
+    state: started
+    daemon_reload: true

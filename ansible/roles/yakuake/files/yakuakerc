@@ -1,0 +1,12 @@
+[Appearance]
+Skin=placidTheme23c.yakuake
+SkinInstalledWithKns=true
+
+[Dialogs]
+FirstRun=false
+
+[KFileDialog Settings]
+detailViewIconSize=16
+
+[Window]
+KeepOpen=false
