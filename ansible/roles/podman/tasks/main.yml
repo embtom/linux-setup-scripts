@@ -1,7 +1,10 @@
 ---
 - name: Install podman
   ansible.builtin.apt:
-    name: podman
+    name:
+      - podman
+      - qemu-user-static
+      - binfmt-support
     state: present
   become: true
 
@@ -74,3 +77,10 @@
     cmd: podman system migrate
   changed_when: podman_subuid_result.changed or podman_subgid_result.changed
   when: podman_subuid_result.changed or podman_subgid_result.changed
+
+- name: Enable binfmt service
+  ansible.builtin.systemd:
+    name: systemd-binfmt.service
+    enabled: true
+    state: started
+  become: true
