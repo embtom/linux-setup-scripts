@@ -1,5 +1,5 @@
 {
-    "workbench.colorTheme": "Solarized Dark",
+    "workbench.colorTheme": "Visual Studio Light - C++",
     "workbench.iconTheme": "material-icon-theme",
     "window.title": "${rootName}${separator}${rootPath}",
     "security.workspace.trust.untrustedFiles": "open",
@@ -70,5 +70,13 @@
         "editor.defaultFormatter": "redhat.vscode-yaml"
     },
 
-    "chat.viewSessions.orientation": "stacked"
+    "chat.viewSessions.orientation": "stacked",
+    "github.copilot.nextEditSuggestions.eagerness": "medium",
+    "github.copilot.enable": {
+        "*": true,
+        "plaintext": false,
+        "markdown": true,
+        "scminput": false
+    },
+    "terminal.integrated.fontSize": 12
 }
