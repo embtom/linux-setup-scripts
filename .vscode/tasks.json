@@ -78,6 +78,7 @@
       "options": [
         "common",
         "shell",
+        "scripts",
         "systemd",
         "podman",
         "vscode",

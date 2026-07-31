@@ -12,6 +12,8 @@
       tags: [podman]
     - role: shell_config
       tags: [shell]
+    - role: system_scripts
+      tags: [scripts]
     - role: vscode
       tags: [vscode]
     - role: git_config
