@@ -4,17 +4,13 @@
     {
       "label": "ansible: install",
       "type": "shell",
-      "command": "${workspaceFolder}/install-requirements && ${workspaceFolder}/install-ansible",
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
-        "focus": true      },
+      "command": "${workspaceFolder}/scripts/install-requirements && ${workspaceFolder}/scripts/install-ansible",
       "problemMatcher": []
     },
     {
       "label": "ansible: lint",
       "type": "shell",
-      "command": "${workspaceFolder}/run-lint",
+      "command": "${workspaceFolder}/scripts/ansible-lint",
       "problemMatcher": [
         {
           "owner": "yamllint",
@@ -50,7 +46,7 @@
     {
       "label": "ansible: run all roles",
       "type": "shell",
-      "command": "${workspaceFolder}/run-ansible",
+      "command": "${workspaceFolder}/scripts/deploy --host ${input:remoteHost}",
       "presentation": {
         "reveal": "always",
         "panel": "dedicated",
@@ -61,7 +57,7 @@
     {
       "label": "ansible: run by tag",
       "type": "shell",
-      "command": "${workspaceFolder}/run-ansible ${input:roleTag}",
+      "command": "${workspaceFolder}/scripts/deploy --host ${input:remoteHost} --tag ${input:roleTag}",
       "presentation": {
         "reveal": "always",
         "panel": "dedicated",
@@ -78,12 +74,19 @@
       "options": [
         "common",
         "shell",
+        "scripts",
         "systemd",
         "podman",
         "vscode",
         "git",
         "yakuake"
       ]
+    },
+    {
+      "id": "remoteHost",
+      "type": "promptString",
+      "description": "Remote SSH host or SSH config alias",
+      "default": "localhost"
     }
   ]
 }

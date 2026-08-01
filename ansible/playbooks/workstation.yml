@@ -1,7 +1,13 @@
 ---
 - name: Configure workstation
-  hosts: workstations
+  hosts: all
   become: false
+
+  pre_tasks:
+    - name: Show deployment target
+      ansible.builtin.debug:
+        msg: "Deploying to {{ inventory_hostname }} ({{ ansible_host | default(inventory_hostname) }})"
+      tags: [always]
 
   roles:
     - role: common
@@ -12,6 +18,8 @@
       tags: [podman]
     - role: shell_config
       tags: [shell]
+    - role: system_scripts
+      tags: [scripts]
     - role: vscode
       tags: [vscode]
     - role: git_config

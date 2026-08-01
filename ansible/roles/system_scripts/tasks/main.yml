@@ -1,0 +1,17 @@
+---
+- name: Ensure /usr/local/bin exists
+  become: true
+  ansible.builtin.file:
+    path: /usr/local/bin
+    state: directory
+    mode: "0755"
+
+- name: Install helper scripts
+  become: true
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ system_scripts_install }}"

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+if [[ $# -ne 1 ]]; then
+    echo "Usage: $0 <username>" >&2
+    exit 1
+fi
+
+user="$1"
+
+exec sudo systemd-run \
+    --system \
+    --scope \
+    su - "$user"
