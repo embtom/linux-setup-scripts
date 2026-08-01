@@ -23,11 +23,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          ./install-requirements
-          ./install-ansible
+          ./scripts/install-requirements
+          ./scripts/install-ansible
 
       - name: Run linters
-        run: ./run-lint --github-format
+        run: ./scripts/ansible-lint --github-format
 
       - name: Publish ansible-lint results
         uses: github/codeql-action/upload-sarif@v4
@@ -35,5 +35,5 @@ jobs:
           always() &&
           !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork)
         with:
-          sarif_file: ansible-lint.sarif
+          sarif_file: scripts/ansible-lint.sarif
           category: ansible-lint
