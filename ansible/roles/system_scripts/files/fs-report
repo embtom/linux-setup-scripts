@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+echo "=== Filesystems ==="
+
+{
+  printf 'MOUNT\tFSTYPE\tSOURCE\tSIZE\tUSED\tAVAIL\tUSE%%\n'
+
+  findmnt -rn -o TARGET,FSTYPE,SOURCE |
+    while read -r mount fstype source; do
+      case "$fstype" in
+      btrfs | ext4 | xfs)
+        read -r _ _ size used avail usep _ <<< \
+          "$(df -hT "$mount" | tail -n 1)"
+
+        printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+          "$mount" \
+          "$fstype" \
+          "$source" \
+          "$size" \
+          "$used" \
+          "$avail" \
+          "$usep"
+        ;;
+      esac
+    done
+} | column -t -s $'\t'
+
+echo
+echo "=== Btrfs filesystems ==="
+
+declare -A seen_btrfs_devices=()
+
+findmnt -rn -o TARGET,FSTYPE,SOURCE | while read -r mount fstype source; do
+  [[ "$fstype" == "btrfs" ]] || continue
+
+  # multiple subvolumes share one device-level usage; only show it once per device
+  device="${source%%[*}"
+  if [[ -z "${seen_btrfs_devices[$device]:-}" ]]; then
+    seen_btrfs_devices[$device]=1
+    echo
+    echo "$device (via $mount):"
+    btrfs filesystem usage "$mount"
+  fi
+done
