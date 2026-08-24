@@ -57,7 +57,7 @@ end
 # Aliases
 # ------------------------------------------------------------------------------------
 alias pse='ps -Leo pid,tid,class,priority,rtprio,ni,pcpu,stat,cmd'
-alias lsb='lsblk -o NAME,PARTLABEL,MAJ:MIN,FSTYPE,SIZE,MOUNTPOINT,RO'
+alias lsb='lsblk -o NAME,PARTLABEL,MAJ:MIN,FSTYPE,SIZE,MOUNTPOINT,RO,MODEL,SERIAL,UUID'
 alias ls='lsd'
 alias ll='ls -alF'
 alias la='ls -A'
