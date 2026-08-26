@@ -1,5 +1,5 @@
 {
-    "workbench.colorTheme": "Visual Studio Light - C++",
+    "workbench.colorTheme": "GitHub Dark",
     "workbench.iconTheme": "material-icon-theme",
     "window.title": "${rootName}${separator}${rootPath}",
     "security.workspace.trust.untrustedFiles": "open",
