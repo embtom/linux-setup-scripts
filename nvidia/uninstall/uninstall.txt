@@ -1,0 +1,130 @@
+NVIDIA to AMD Radeon Migration Guide
+====================================
+
+This guide removes the NVIDIA 580 driver, CUDA toolkit, DKMS module, and
+associated configuration before replacing the GPU with an AMD Radeon card.
+
+Important
+---------
+
+* Use a local TTY or have another way to access the machine if the graphical
+  session does not start during the first boot after the replacement.
+* Back up important data before changing graphics drivers.
+* An AMD Radeon RX 9070 XT uses the in-kernel `amdgpu` driver; no AMD DKMS
+  driver is required.
+* Linux 6.12 is older than the RDNA 4 enablement work. Before replacing the
+  card, install and boot a current, Debian-supported kernel (at least 6.14 is
+  recommended) and a current Mesa stack.
+* CUDA software cannot use an AMD GPU. Use ROCm after the migration if GPU
+  compute is required.
+
+1. Install the AMD userspace packages first
+-------------------------------------------
+
+Run this while the NVIDIA card is still installed:
+
+	sudo apt update
+	sudo apt install firmware-amd-graphics mesa-vulkan-drivers libgl1-mesa-dri vulkan-tools xserver-xorg-video-amdgpu
+
+Check the running kernel:
+
+	uname -r
+
+Upgrade to and boot a suitably recent Debian-supported kernel before swapping
+the hardware. Do not proceed with an older kernel solely because the NVIDIA
+DKMS module currently builds for it.
+
+2. Remove package holds
+-----------------------
+
+The NVIDIA installation script marks driver and CUDA packages as held. Review
+the matching holds, then remove them:
+
+	apt-mark showhold | grep -E '^(nvidia|libnvidia|cuda|libcuda|libcud|libnv|nsight|gds)'
+	sudo apt-mark unhold $(apt-mark showhold | grep -E '^(nvidia|libnvidia|cuda|libcuda|libcud|libnv|nsight|gds)')
+
+If the first command prints no packages, skip the second command.
+
+3. Simulate and remove the NVIDIA/CUDA packages
+-----------------------------------------------
+
+First review APT's planned changes. Do not continue if it proposes removing
+unrelated packages that you want to keep:
+
+	sudo apt -s purge 'nvidia-*' 'libnvidia-*' 'cuda-*' 'libcuda*' 'libcud*' 'libnv*' 'nsight-*' 'gds-tools-*' firmware-nvidia-gsp
+
+When the simulation looks correct, perform the same operation:
+
+	sudo apt purge 'nvidia-*' 'libnvidia-*' 'cuda-*' 'libcuda*' 'libcud*' 'libnv*' 'nsight-*' 'gds-tools-*' firmware-nvidia-gsp
+
+Do not purge `dkms` itself unless it is no longer needed by any other kernel
+module. Confirm that the NVIDIA DKMS module is gone:
+
+	dkms status
+
+If an NVIDIA entry remains after the package removal, remove that exact
+version for every kernel, for example:
+
+	sudo dkms remove nvidia/580.105.08 --all
+
+4. Remove NVIDIA boot and module configuration
+----------------------------------------------
+
+Edit `/etc/default/grub` and remove the following NVIDIA parameters from
+`GRUB_CMDLINE_LINUX_DEFAULT`:
+
+	nvidia_drm.modeset=1 nvidia_drm.fbdev=1
+
+Keep unrelated parameters, such as `loglevel=3`, `quiet`,
+`usbcore.autosuspend=-1`, and `amd_pstate=active`.
+
+Remove the NVIDIA-specific modprobe configuration files:
+
+	sudo rm /etc/modprobe.d/nvidia.conf \
+			/etc/modprobe.d/nvidia-drm.conf \
+			/etc/modprobe.d/nvidia-modeset.conf \
+			/etc/modprobe.d/nvidia-power-management.conf \
+			/etc/modprobe.d/blacklist-nouveau.conf
+
+Rebuild the boot configuration and initramfs:
+
+	sudo update-initramfs -u -k all
+	sudo update-grub
+
+5. Remove the NVIDIA CUDA repository (optional but recommended)
+---------------------------------------------------------------
+
+If CUDA will no longer be used, find CUDA/NVIDIA repository files first:
+
+	ls /etc/apt/sources.list.d/*cuda* /etc/apt/sources.list.d/*nvidia* 2>/dev/null
+
+Remove only the files belonging to the NVIDIA CUDA repository, then remove the
+repository keyring if it is no longer needed:
+
+	sudo apt purge cuda-keyring
+	sudo apt update
+
+Do not run `apt autoremove` until you have reviewed the package list. It may
+offer packages that you still use outside the NVIDIA stack.
+
+6. Replace the hardware
+-----------------------
+
+1. Shut down the system completely.
+2. Turn off and unplug the power supply.
+3. Replace the NVIDIA GPU with the AMD Radeon GPU.
+4. Connect every display cable to the new AMD GPU.
+5. Boot the system.
+
+7. Verify the AMD driver stack
+------------------------------
+
+After booting, verify that the kernel selected `amdgpu` and that Vulkan works:
+
+	lspci -nnk | grep -A 3 -Ei 'vga|display'
+	lsmod | grep amdgpu
+	vulkaninfo --summary
+
+The `lspci` output should show `Kernel driver in use: amdgpu` for the Radeon
+card. A successful `vulkaninfo --summary` confirms that the Mesa Vulkan stack
+can access the GPU.
