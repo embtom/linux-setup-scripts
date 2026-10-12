@@ -10,12 +10,19 @@ SSH.
 | --- | --- | --- |
 | `common` | `common` | Base development packages and Node.js 20 |
 | `systemd` | `systemd` | `systemd-resolved` and NetworkManager DNS integration |
+| `ssh` | `ssh_hardening` | OpenSSH server installation and ssh-audit-based cryptographic hardening |
 | `podman` | `podman` | Rootless Podman and Podman Compose configuration |
 | `shell` | `shell_config` | Fish, Starship, direnv, fzf, pyenv, fonts, and Konsole profile |
 | `scripts` | `system_scripts` | Helper scripts in `/usr/local/bin` |
 | `vscode` | `vscode` | VS Code repository, application, settings, and extensions |
 | `git` | `git_config` | Global Git configuration |
 | `yakuake` | `yakuake` | Yakuake configuration and user systemd service |
+
+The `ssh` role defaults to public-key-only authentication, disables root login
+and forwarding, and applies connection limits. These SSHD policies can be
+overridden with `ssh_hardening_*` variables. Ensure key-based access works
+before deploying the role remotely; it does not configure a firewall or
+Fail2Ban.
 
 ## Requirements
 

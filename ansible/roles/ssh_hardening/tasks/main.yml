@@ -1,0 +1,104 @@
+---
+- name: Install OpenSSH server
+  ansible.builtin.apt:
+    name: openssh-server
+    state: present
+  become: true
+
+- name: Check whether host keys were already rotated
+  ansible.builtin.stat:
+    path: "{{ ssh_hardening_marker }}"
+  register: ssh_hardening_key_marker
+  become: true
+
+- name: Remove RSA OpenSSH host key files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/ssh/ssh_host_rsa_key
+    - /etc/ssh/ssh_host_rsa_key.pub
+  become: true
+  notify: Restart OpenSSH
+
+- name: Rotate OpenSSH host keys once
+  when: not ssh_hardening_key_marker.stat.exists
+  become: true
+  block:
+    - name: Find existing OpenSSH host keys
+      ansible.builtin.find:
+        paths: /etc/ssh
+        patterns: ssh_host_*
+        file_type: file
+      register: ssh_hardening_existing_host_keys
+
+    - name: Remove existing OpenSSH host keys
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ ssh_hardening_existing_host_keys.files }}"
+      loop_control:
+        label: "{{ item.path }}"
+
+    - name: Generate ED25519 host key
+      ansible.builtin.command:
+        argv:
+          - ssh-keygen
+          - -q
+          - -t
+          - ed25519
+          - -f
+          - /etc/ssh/ssh_host_ed25519_key
+          - -N
+          - ""
+        creates: /etc/ssh/ssh_host_ed25519_key
+
+    - name: Record completed host key rotation
+      ansible.builtin.file:
+        path: "{{ ssh_hardening_marker }}"
+        state: touch
+        owner: root
+        group: root
+        mode: "0600"
+        modification_time: preserve
+        access_time: preserve
+      notify: Restart OpenSSH
+
+- name: Remove Diffie-Hellman moduli smaller than 3071 bits
+  ansible.builtin.shell: |
+    set -eu
+    temporary_file="$(mktemp)"
+    trap 'rm -f "$temporary_file"' EXIT
+    awk '$5 >= 3071' /etc/ssh/moduli > "$temporary_file"
+    if ! cmp -s "$temporary_file" /etc/ssh/moduli; then
+      install -o root -g root -m 0644 "$temporary_file" /etc/ssh/moduli
+      printf '%s\n' updated
+    fi
+  args:
+    executable: /bin/sh
+  register: ssh_hardening_moduli
+  changed_when: "'updated' in ssh_hardening_moduli.stdout"
+  become: true
+  notify: Restart OpenSSH
+
+- name: Install ssh-audit hardening configuration
+  ansible.builtin.template:
+    src: ssh-audit_hardening.conf.j2
+    dest: "{{ ssh_hardening_config }}"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: Restart OpenSSH
+
+- name: Validate effective OpenSSH server configuration
+  ansible.builtin.command: /usr/sbin/sshd -t
+  changed_when: false
+  become: true
+
+- name: Enable and start OpenSSH server
+  ansible.builtin.service:
+    name: ssh
+    enabled: true
+    state: started
+  become: true
