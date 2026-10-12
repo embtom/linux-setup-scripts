@@ -73,12 +73,13 @@
       "description": "Select role to run",
       "options": [
         "common",
-        "shell",
-        "scripts",
-        "systemd",
-        "podman",
-        "vscode",
         "git",
+        "podman",
+        "scripts",
+        "shell",
+        "ssh",
+        "systemd",
+        "vscode",
         "yakuake"
       ]
     },

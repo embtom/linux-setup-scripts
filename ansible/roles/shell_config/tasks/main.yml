@@ -12,6 +12,24 @@
     state: present
   become: true
 
+- name: Prefer Debian libxml2 over bchemet repository
+  ansible.builtin.copy:
+    dest: /etc/apt/preferences.d/90-bchemet-libxml2
+    mode: "0644"
+    content: |
+      Package: libxml2
+      Pin: release o=Debian
+      Pin-Priority: 1001
+  become: true
+
+- name: Reconcile libxml2 with Debian package version
+  ansible.builtin.apt:
+    name: libxml2
+    state: present
+    update_cache: true
+    allow_downgrade: true
+  become: true
+
 - name: Install pyenv dependencies
   ansible.builtin.apt:
     name:
@@ -79,21 +97,87 @@
     cmd: starship preset gruvbox-rainbow -o {{ home_dir }}/.config/starship.toml
     creates: "{{ home_dir }}/.config/starship.toml"
 
-- name: Enable hostname in starship config
+- name: Remove existing hostname configuration from starship preset
+  ansible.builtin.replace:
+    path: "{{ home_dir }}/.config/starship.toml"
+    regexp: '^\[hostname\]\n(?:.*\n)*?(?=^\[|\Z)'
+  tags: [starship]
+
+- name: Remove legacy managed hostname markers
+  ansible.builtin.replace:
+    path: "{{ home_dir }}/.config/starship.toml"
+    regexp: '^# (?:BEGIN|END) ANSIBLE MANAGED - hostname\n'
+  tags: [starship]
+
+- name: Remove existing username configuration from starship preset
+  ansible.builtin.replace:
+    path: "{{ home_dir }}/.config/starship.toml"
+    regexp: '^\[username\]\n(?:.*\n)*?(?=^\[|\Z)'
+  tags: [starship]
+
+- name: Configure hostname and username in starship prompt
   ansible.builtin.blockinfile:
     path: "{{ home_dir }}/.config/starship.toml"
-    marker: "# {mark} ANSIBLE MANAGED - hostname"
+    insertbefore: '^\[directory\]$'
+    marker: '# {mark} ANSIBLE MANAGED - identity'
     block: |
       [hostname]
       ssh_only = false
-      format = '[$hostname ](bg:color_orange fg:color_fg0)'
+      format = '[ $hostname ](bg:color_orange fg:color_fg0)'
       disabled = false
 
-- name: Add hostname to starship format string
+      [username]
+      show_always = true
+      style_user = "bg:color_orange fg:color_fg0"
+      style_root = "bg:color_orange fg:color_fg0"
+      format = '[ $user ]($style)'
+  tags: [starship]
+
+- name: Remove legacy managed directory blocks
+  ansible.builtin.replace:
+    path: "{{ home_dir }}/.config/starship.toml"
+    regexp: '(?s)^(?:# BEGIN ANSIBLE MANAGED - directory\n)?\[directory\]\n.*?# END ANSIBLE MANAGED - directory\n'
+  tags: [starship]
+
+- name: Remove existing directory configuration from starship preset
+  ansible.builtin.replace:
+    path: "{{ home_dir }}/.config/starship.toml"
+    regexp: '^\[directory\]\n(?:[^\n]*\n)*?(?=^\[|\Z)'
+  tags: [starship]
+
+- name: Configure directory color in starship prompt
+  ansible.builtin.blockinfile:
+    path: "{{ home_dir }}/.config/starship.toml"
+    insertbefore: '^\[git_branch\]$'
+    marker: '# {mark} ANSIBLE MANAGED - directory'
+    block: |
+      [directory]
+      style = "fg:color_fg0 bg:color_yellow"
+      format = "[ $path ]($style)"
+      truncation_length = 3
+      truncation_symbol = "…/"
+  tags: [starship]
+
+- name: Remove OS module from starship format
   ansible.builtin.lineinfile:
     path: "{{ home_dir }}/.config/starship.toml"
-    insertafter: '\$username\\'
+    regexp: '^\$os\\$'
+    state: absent
+  tags: [starship]
+
+- name: Remove existing hostname module from starship format
+  ansible.builtin.lineinfile:
+    path: "{{ home_dir }}/.config/starship.toml"
+    regexp: '^\$hostname\\$'
+    state: absent
+  tags: [starship]
+
+- name: Add hostname before username in starship format
+  ansible.builtin.lineinfile:
+    path: "{{ home_dir }}/.config/starship.toml"
+    insertbefore: '\$username\\'
     line: '$hostname\'
+  tags: [starship]
 
 - name: Ensure fish is listed in /etc/shells
   ansible.builtin.lineinfile:
