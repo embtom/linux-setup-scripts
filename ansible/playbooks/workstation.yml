@@ -12,17 +12,19 @@
   roles:
     - role: common
       tags: [common]
-    - role: systemd
-      tags: [systemd]
+    - role: git_config
+      tags: [git]
     - role: podman
       tags: [podman]
     - role: shell_config
       tags: [shell]
+    - role: ssh_hardening
+      tags: [ssh]
     - role: system_scripts
       tags: [scripts]
+    - role: systemd
+      tags: [systemd]
     - role: vscode
       tags: [vscode]
-    - role: git_config
-      tags: [git]
     - role: yakuake
       tags: [yakuake]
