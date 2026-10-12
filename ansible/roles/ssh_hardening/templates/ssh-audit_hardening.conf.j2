@@ -1,0 +1,31 @@
+# Managed by Ansible. Based on ssh-audit.com's Debian 12 guide.
+HostKey /etc/ssh/ssh_host_ed25519_key
+
+KexAlgorithms sntrup761x25519-sha512,sntrup761x25519-sha512@openssh.com,curve25519-sha256,curve25519-sha256@libssh.org,gss-curve25519-sha256-,diffie-hellman-group16-sha512,gss-group16-sha512-,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-gcm@openssh.com,aes128-ctr
+MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,umac-128-etm@openssh.com
+HostKeyAlgorithms sk-ssh-ed25519-cert-v01@openssh.com,ssh-ed25519-cert-v01@openssh.com,sk-ssh-ed25519@openssh.com,ssh-ed25519
+RequiredRSASize 3072
+CASignatureAlgorithms sk-ssh-ed25519@openssh.com,ssh-ed25519,rsa-sha2-512,rsa-sha2-256
+GSSAPIKexAlgorithms gss-curve25519-sha256-,gss-group16-sha512-
+HostbasedAcceptedAlgorithms sk-ssh-ed25519-cert-v01@openssh.com,ssh-ed25519-cert-v01@openssh.com,sk-ssh-ed25519@openssh.com,ssh-ed25519,rsa-sha2-512-cert-v01@openssh.com,rsa-sha2-512,rsa-sha2-256-cert-v01@openssh.com,rsa-sha2-256
+PubkeyAcceptedAlgorithms sk-ssh-ed25519-cert-v01@openssh.com,ssh-ed25519-cert-v01@openssh.com,sk-ssh-ed25519@openssh.com,ssh-ed25519,rsa-sha2-512-cert-v01@openssh.com,rsa-sha2-512,rsa-sha2-256-cert-v01@openssh.com,rsa-sha2-256
+
+PubkeyAuthentication yes
+PasswordAuthentication {{ ssh_hardening_password_authentication | bool | ternary('yes', 'no') }}
+KbdInteractiveAuthentication {{ ssh_hardening_kbd_interactive_authentication | bool | ternary('yes', 'no') }}
+PermitRootLogin {{ ssh_hardening_permit_root_login }}
+PermitEmptyPasswords {{ ssh_hardening_permit_empty_passwords | bool | ternary('yes', 'no') }}
+AuthenticationMethods {{ ssh_hardening_authentication_methods }}
+GSSAPIAuthentication {{ ssh_hardening_gssapi_authentication | bool | ternary('yes', 'no') }}
+HostbasedAuthentication {{ ssh_hardening_hostbased_authentication | bool | ternary('yes', 'no') }}
+LoginGraceTime {{ ssh_hardening_login_grace_time }}
+MaxAuthTries {{ ssh_hardening_max_auth_tries }}
+X11Forwarding {{ ssh_hardening_x11_forwarding | bool | ternary('yes', 'no') }}
+AllowAgentForwarding {{ ssh_hardening_allow_agent_forwarding | bool | ternary('yes', 'no') }}
+AllowTcpForwarding {{ ssh_hardening_allow_tcp_forwarding | bool | ternary('yes', 'no') }}
+ClientAliveInterval {{ ssh_hardening_client_alive_interval }}
+ClientAliveCountMax {{ ssh_hardening_client_alive_count_max }}
+{% if ssh_hardening_allowed_users | length > 0 %}
+AllowUsers {{ ssh_hardening_allowed_users | join(' ') }}
+{% endif %}

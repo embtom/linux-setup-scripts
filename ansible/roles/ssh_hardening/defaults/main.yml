@@ -1,0 +1,18 @@
+---
+ssh_hardening_marker: /etc/ssh/.ssh-audit-host-keys-rotated
+ssh_hardening_config: /etc/ssh/sshd_config.d/ssh-audit_hardening.conf
+ssh_hardening_password_authentication: false
+ssh_hardening_kbd_interactive_authentication: false
+ssh_hardening_permit_root_login: "no"
+ssh_hardening_permit_empty_passwords: false
+ssh_hardening_authentication_methods: publickey
+ssh_hardening_gssapi_authentication: false
+ssh_hardening_hostbased_authentication: false
+ssh_hardening_login_grace_time: 30
+ssh_hardening_max_auth_tries: 3
+ssh_hardening_x11_forwarding: false
+ssh_hardening_allow_agent_forwarding: false
+ssh_hardening_allow_tcp_forwarding: false
+ssh_hardening_client_alive_interval: 300
+ssh_hardening_client_alive_count_max: 2
+ssh_hardening_allowed_users: []
