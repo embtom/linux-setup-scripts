@@ -25,7 +25,7 @@
 - name: Reconcile libxml2 with Debian package version
   ansible.builtin.apt:
     name: libxml2
-    state: latest
+    state: present
     update_cache: true
     allow_downgrade: true
   become: true
@@ -136,7 +136,7 @@
 - name: Remove legacy managed directory blocks
   ansible.builtin.replace:
     path: "{{ home_dir }}/.config/starship.toml"
-    regexp: '^(?:# BEGIN ANSIBLE MANAGED - directory\n)?\[directory\]\n(?:[^\n]*\n)*?# END ANSIBLE MANAGED - directory\n'
+    regexp: '(?s)^(?:# BEGIN ANSIBLE MANAGED - directory\n)?\[directory\]\n.*?# END ANSIBLE MANAGED - directory\n'
   tags: [starship]
 
 - name: Remove existing directory configuration from starship preset
