@@ -12,6 +12,8 @@ SSH.
 | `systemd` | `systemd` | `systemd-resolved` and NetworkManager DNS integration |
 | `ssh` | `ssh_hardening` | OpenSSH server installation and ssh-audit-based cryptographic hardening |
 | `podman` | `podman` | Rootless Podman and Podman Compose configuration |
+| `nftables` | `nftables` | Default input firewall with SSH and ICMP access |
+| `router` | `router` | Optional IPv4 router with DHCP, forwarding, and NAT |
 | `shell` | `shell_config` | Fish, Starship, direnv, fzf, pyenv, fonts, and Konsole profile |
 | `scripts` | `system_scripts` | Helper scripts in `/usr/local/bin` |
 | `vscode` | `vscode` | VS Code repository, application, settings, and extensions |
@@ -23,6 +25,40 @@ and forwarding, and applies connection limits. These SSHD policies can be
 overridden with `ssh_hardening_*` variables. Ensure key-based access works
 before deploying the role remotely; it does not configure a firewall or
 Fail2Ban.
+
+## Router Configuration
+
+The `router` role is disabled by default to avoid changing a normal workstation
+into a gateway. Enable it for the intended host in inventory variables and
+configure the LAN interface that serves DHCP, the WAN interface used for NAT,
+and the addresses announced to DHCP clients:
+
+```yaml
+router_enabled: true
+router_lan_interface: usbnet
+router_lan_mac_address: "3c:18:a0:0f:72:63"
+router_wan_interface: wlp1s0
+router_lan_address: 192.168.100.1/24
+router_lan_subnet: 192.168.100.0/24
+router_dhcp_gateway: 192.168.100.1
+router_dhcp_dns_servers:
+  - 192.168.100.1
+```
+
+The `nftables` role is enabled by default. It configures a default-drop input
+filter with access for established connections, loopback, ICMP/ICMPv6, and SSH.
+It writes `/etc/nftables.conf` with `flush ruleset` and includes
+`/etc/nftables.d/*.nft`, creates `/etc/nftables.d/10-filter.nft`, and manages
+the `nftables` service.
+
+The optional `router` role assigns the USB LAN adapter a stable interface name
+using its MAC address in `/etc/systemd/network/10-router-lan.link`, configures
+IPv4 forwarding, writes `/etc/systemd/network/10-router-lan.network`, and manages
+`systemd-networkd`. It creates `/etc/nftables.d/20-router.nft`, which permits
+LAN access to the router and adds forwarding plus source NAT. The DHCP pool and
+lease durations are configurable through the `router_dhcp_*` variables in the
+role defaults. A new `.link` file takes effect when the adapter is next
+initialized; reboot the host or reconnect the adapter after deployment.
 
 ## Requirements
 

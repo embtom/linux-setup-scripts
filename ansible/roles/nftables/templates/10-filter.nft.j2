@@ -1,0 +1,13 @@
+add table inet filter
+
+add chain inet filter input {
+    type filter hook input priority 0; policy drop;
+
+    ct state invalid drop
+    ct state { established, related } accept
+    iifname "lo" accept
+    ip protocol icmp accept
+    ip6 nexthdr icmpv6 accept
+    meta nfproto ipv6 udp sport 547 udp dport 546 accept
+    tcp dport 22 accept
+}
