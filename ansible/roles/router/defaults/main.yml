@@ -1,0 +1,19 @@
+---
+# Set to true for hosts that should route a LAN through a WAN connection.
+router_enabled: false
+
+# The LAN interface runs the DHCP server; the WAN interface is used for NAT.
+router_lan_interface: usbnet
+router_lan_mac_address: "3c:18:a0:0f:72:63"
+router_wan_interface: wlp1s0
+
+# IPv4 configuration advertised to DHCP clients.
+router_lan_address: 192.168.100.1/24
+router_lan_subnet: 192.168.100.0/24
+router_dhcp_gateway: 192.168.100.1
+router_dhcp_dns_servers:
+  - "{{ router_dhcp_gateway }}"
+router_dhcp_pool_offset: 100
+router_dhcp_pool_size: 50
+router_dhcp_default_lease_time: 12h
+router_dhcp_max_lease_time: 24h

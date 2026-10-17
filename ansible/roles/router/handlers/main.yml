@@ -1,0 +1,25 @@
+---
+- name: Restart NetworkManager
+  ansible.builtin.systemd:
+    name: NetworkManager
+    state: restarted
+  become: true
+
+- name: Restart systemd-networkd
+  ansible.builtin.systemd:
+    name: systemd-networkd
+    state: restarted
+  become: true
+
+- name: Restart systemd-resolved
+  ansible.builtin.systemd:
+    name: systemd-resolved
+    state: restarted
+  become: true
+
+- name: Apply sysctl settings
+  ansible.builtin.command:
+    cmd: sysctl --system
+  become: true
+  changed_when: false
+  listen: Apply sysctl settings

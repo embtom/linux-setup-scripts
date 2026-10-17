@@ -74,7 +74,9 @@
       "options": [
         "common",
         "git",
+        "nftables",
         "podman",
+        "router",
         "scripts",
         "shell",
         "ssh",
