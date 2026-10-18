@@ -30,6 +30,9 @@
     force: true
   become: true
 
+- name: Gather service facts
+  ansible.builtin.service_facts:
+
 - name: Configure NetworkManager to use systemd-resolved
   when: ansible_facts.services['NetworkManager.service'] is defined
   block:
