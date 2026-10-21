@@ -60,6 +60,14 @@ lease durations are configurable through the `router_dhcp_*` variables in the
 role defaults. A new `.link` file takes effect when the adapter is next
 initialized; reboot the host or reconnect the adapter after deployment.
 
+The router keeps `systemd-networkd` as its DHCP server and uses `dnsmasq` only
+for DNS. DHCP leases with valid client-provided hostnames are synchronized to
+`home.arpa` records, for example `venus.home.arpa`. DHCP option 15 advertises
+`home.arpa` as the search domain. Leases without a hostname are omitted, and
+conflicting or invalid names are not published. A short-lived timer reconciles
+records every 15 seconds; DNS updates are written atomically and loaded locally
+by `dnsmasq`.
+
 ## Requirements
 
 - Debian or Ubuntu system

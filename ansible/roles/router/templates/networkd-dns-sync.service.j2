@@ -1,0 +1,19 @@
+[Unit]
+Description=Synchronize systemd-networkd DHCP leases to local DNS
+After=systemd-networkd.service dnsmasq.service
+Wants=systemd-networkd.service dnsmasq.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/networkd-dns-sync --interface {{ router_lan_interface }} --subnet {{ router_lan_subnet }} --server-address {{ router_dhcp_gateway }} --domain {{ router_dns_domain }}
+User=root
+Group=root
+UMask=0027
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ReadWritePaths=/var/lib/networkd-dns

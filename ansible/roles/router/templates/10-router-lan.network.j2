@@ -5,12 +5,14 @@ Name={{ router_lan_interface }}
 Address={{ router_lan_address }}
 DHCPServer=yes
 IPv6AcceptRA=no
+MulticastDNS=yes
 
 [DHCPServer]
 PoolOffset={{ router_dhcp_pool_offset }}
 PoolSize={{ router_dhcp_pool_size }}
 EmitDNS=yes
 DNS={{ router_dhcp_dns_servers | join(' ') }}
+SendOption=15:string:{{ router_dns_domain }}
 EmitRouter=yes
 Router={{ router_dhcp_gateway }}
 DefaultLeaseTimeSec={{ router_dhcp_default_lease_time }}

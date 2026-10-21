@@ -17,6 +17,12 @@
     state: restarted
   become: true
 
+- name: Restart dnsmasq
+  ansible.builtin.systemd:
+    name: dnsmasq
+    state: restarted
+  become: true
+
 - name: Apply sysctl settings
   ansible.builtin.command:
     cmd: sysctl --system

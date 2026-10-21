@@ -1,0 +1,13 @@
+port=53
+interface={{ router_lan_interface }}
+listen-address={{ router_dhcp_gateway }}
+bind-dynamic
+no-dhcp-interface={{ router_lan_interface }}
+no-hosts
+domain={{ router_dns_domain }}
+expand-hosts
+local=/{{ router_dns_domain }}/
+domain-needed
+bogus-priv
+local-ttl=30
+addn-hosts=/var/lib/networkd-dns/dhcp.hosts

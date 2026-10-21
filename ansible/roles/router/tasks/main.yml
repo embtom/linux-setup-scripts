@@ -19,39 +19,35 @@
             == router_dhcp_dns_servers | length
           - router_dhcp_pool_offset | int > 0
           - router_dhcp_pool_size | int > 0
+          - router_dns_domain is match('^[A-Za-z0-9][A-Za-z0-9.-]*[A-Za-z0-9]$')
+          - router_dns_domain is search('\.')
           - ansible_facts['distribution'] in router_rtl8153_firmware_packages
         fail_msg: >-
           Configure the router interface names, IPv4 addresses, and DHCP pool with
           valid non-empty values. Add the target distribution's RTL8153 firmware
-          package to router_rtl8153_firmware_packages.
+          package to router_rtl8153_firmware_packages and set a valid DNS domain.
 
-    - name: Install router packages
+    - name: Remove the systemd-resolved LAN listener
+      ansible.builtin.file:
+        path: /etc/systemd/resolved.conf.d/10-router.conf
+        state: absent
+      become: true
+      notify: Restart systemd-resolved
+
+    - name: Release the LAN DNS port before configuring dnsmasq
+      ansible.builtin.meta: flush_handlers
+
+    - name: Install router packages without starting services before configuration
       ansible.builtin.apt:
         name:
           - systemd-resolved
+          - dnsmasq
+          - python3-dbus
           - "{{ router_rtl8153_firmware_packages[ansible_facts['distribution']] }}"
         state: present
         update_cache: true
+        policy_rc_d: 101
       become: true
-
-    - name: Ensure systemd-resolved configuration directory exists
-      ansible.builtin.file:
-        path: /etc/systemd/resolved.conf.d
-        state: directory
-        owner: root
-        group: root
-        mode: "0755"
-      become: true
-
-    - name: Configure LAN DNS listener
-      ansible.builtin.template:
-        src: 10-router.conf.j2
-        dest: /etc/systemd/resolved.conf.d/10-router.conf
-        owner: root
-        group: root
-        mode: "0644"
-      become: true
-      notify: Restart systemd-resolved
 
     - name: Configure IPv4 forwarding
       ansible.builtin.copy:
@@ -113,6 +109,66 @@
       become: true
       notify: Restart systemd-networkd
 
+    - name: Ensure DHCP lease DNS directory exists
+      ansible.builtin.file:
+        path: /var/lib/networkd-dns
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      become: true
+
+    - name: Ensure DHCP lease DNS hosts file exists
+      ansible.builtin.file:
+        path: /var/lib/networkd-dns/dhcp.hosts
+        state: touch
+        owner: root
+        group: root
+        mode: "0644"
+        modification_time: preserve
+        access_time: preserve
+      become: true
+
+    - name: Install DHCP lease DNS synchronizer
+      ansible.builtin.copy:
+        src: networkd-dns-sync.py
+        dest: /usr/local/sbin/networkd-dns-sync
+        owner: root
+        group: root
+        mode: "0755"
+      become: true
+
+    - name: Configure dnsmasq for lease-based DNS only
+      ansible.builtin.template:
+        src: 10-router-dnsmasq.conf.j2
+        dest: /etc/dnsmasq.d/10-router.conf
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+      notify: Restart dnsmasq
+
+    - name: Configure DHCP lease DNS synchronizer service
+      ansible.builtin.template:
+        src: networkd-dns-sync.service.j2
+        dest: /etc/systemd/system/networkd-dns-sync.service
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+
+    - name: Configure DHCP lease DNS synchronizer timer
+      ansible.builtin.template:
+        src: networkd-dns-sync.timer
+        dest: /etc/systemd/system/networkd-dns-sync.timer
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+
+    - name: Apply router network and DNS configuration before syncing leases
+      ansible.builtin.meta: flush_handlers
+
     - name: Configure router nftables rules
       ansible.builtin.template:
         src: "{{ item.src }}"
@@ -141,3 +197,18 @@
       loop:
         - systemd-networkd
         - systemd-resolved
+
+    - name: Enable and start dnsmasq
+      ansible.builtin.systemd:
+        name: dnsmasq
+        enabled: true
+        state: started
+      become: true
+
+    - name: Enable DHCP lease DNS synchronization
+      ansible.builtin.systemd:
+        name: networkd-dns-sync.timer
+        enabled: true
+        state: started
+        daemon_reload: true
+      become: true
