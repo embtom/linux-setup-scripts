@@ -26,12 +26,16 @@
   ansible.builtin.deb822_repository:
     name: nodesource
     types: deb
-    uris: https://deb.nodesource.com/node_20.x
+    uris: https://deb.nodesource.com/node_24.x
     suites: nodistro
     components: main
     signed_by: /etc/apt/keyrings/nodesource.gpg
     state: present
   become: true
+  notify: Refresh NodeSource apt package cache
+
+- name: Refresh NodeSource apt package cache before package installation
+  ansible.builtin.meta: flush_handlers
 
 - name: Update apt package cache
   ansible.builtin.apt:
