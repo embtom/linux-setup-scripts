@@ -16,6 +16,10 @@
       tags: [git]
     - role: podman
       tags: [podman]
+    - role: nftables
+      tags: [nftables, router]
+    - role: router
+      tags: [router]
     - role: shell_config
       tags: [shell]
     - role: ssh_hardening
