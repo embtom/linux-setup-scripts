@@ -5,10 +5,53 @@
     state: present
   become: true
 
+- name: Remove Avahi mDNS daemon
+  ansible.builtin.apt:
+    name: avahi-daemon
+    state: absent
+    purge: true
+  become: true
+
+- name: Remove NSS mDNS module
+  ansible.builtin.apt:
+    name: libnss-mdns
+    state: absent
+    purge: true
+  become: true
+
+- name: Use systemd-resolved for local hostname resolution
+  ansible.builtin.lineinfile:
+    path: /etc/nsswitch.conf
+    regexp: '^(hosts:\s+.*)\s+mdns4_minimal\s+\[NOTFOUND=return\](.*)$'
+    line: '\1\2'
+    backrefs: true
+  become: true
+
 - name: Deploy systemd-resolved configuration
   ansible.builtin.copy:
     src: resolved.conf
     dest: /etc/systemd/resolved.conf
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: Restart DNS services in order
+
+- name: Ensure systemd-resolved drop-in directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/resolved.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
+- name: Enable Multicast DNS after vendor drop-ins
+  ansible.builtin.copy:
+    content: |
+      [Resolve]
+      MulticastDNS=yes
+    dest: /etc/systemd/resolved.conf.d/90-multicast-dns.conf
     owner: root
     group: root
     mode: "0644"
@@ -29,6 +72,9 @@
     state: link
     force: true
   become: true
+
+- name: Gather service facts
+  ansible.builtin.service_facts:
 
 - name: Configure NetworkManager to use systemd-resolved
   when: ansible_facts.services['NetworkManager.service'] is defined
