@@ -1,0 +1,11 @@
+[Resolve]
+# Serve DHCP clients through the router's caching DNS stub.
+DNSStubListenerExtra={{ router_dhcp_gateway }}
+
+# Advertise and resolve .local services on the LAN. This is also enabled per-link
+# in the networkd configuration, which is required for mDNS traffic on this link.
+MulticastDNS=yes
+
+# Do not use legacy single-label LLMNR naming or send bare labels to unicast DNS.
+LLMNR=no
+ResolveUnicastSingleLabel=no

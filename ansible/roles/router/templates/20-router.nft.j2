@@ -1,0 +1,16 @@
+add rule inet filter input iifname "{{ router_lan_interface }}" accept
+
+add table inet router
+
+add chain inet router forward {
+    type filter hook forward priority 0; policy drop;
+
+    ct state { established, related } accept
+    iifname "{{ router_lan_interface }}" oifname "{{ router_wan_interface }}" accept
+}
+
+add chain inet router postrouting {
+    type nat hook postrouting priority 100;
+
+    oifname "{{ router_wan_interface }}" ip saddr {{ router_lan_subnet }} masquerade
+}
