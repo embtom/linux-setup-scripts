@@ -1,0 +1,4 @@
+---
+sane_airscan_enabled: false
+sane_airscan_devices: []
+sane_airscan_disable_hpaio: false

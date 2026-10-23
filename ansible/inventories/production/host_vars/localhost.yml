@@ -1,3 +1,10 @@
 ---
-router_enabled: false
+router_enabled: true
 router_wan_interface: wlp2s0
+
+sane_airscan_enabled: true
+sane_airscan_disable_hpaio: true
+sane_airscan_devices:
+  - name: NPIC65336
+    url: http://npic65336.local/eSCL
+    protocol: escl

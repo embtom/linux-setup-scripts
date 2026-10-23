@@ -1,0 +1,8 @@
+# Managed by Ansible. Configure scanners in sane_airscan_devices.
+[devices]
+{% for device in sane_airscan_devices %}
+"{{ device.name }}" = {{ device.url }}, {{ device.protocol }}
+{% endfor %}
+
+[options]
+discovery = disable
