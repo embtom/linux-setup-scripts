@@ -1,0 +1,143 @@
+---
+- name: Configure router
+  when: router_enabled | bool
+  block:
+    - name: Validate router configuration
+      ansible.builtin.assert:
+        that:
+          - router_lan_interface is string
+          - router_lan_interface is match('^[A-Za-z0-9_.:-]+$')
+          - router_lan_mac_address is match('^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$')
+          - router_wan_interface is string
+          - router_wan_interface is match('^[A-Za-z0-9_.:-]+$')
+          - router_lan_address is match('^[0-9A-Fa-f:.]+/[0-9]{1,3}$')
+          - router_lan_subnet is match('^[0-9A-Fa-f:.]+/[0-9]{1,3}$')
+          - router_dhcp_gateway is match('^[0-9A-Fa-f:.]+$')
+          - router_dhcp_dns_servers | length > 0
+          - >-
+            router_dhcp_dns_servers | select('match', '^[0-9A-Fa-f:.]+$') | list | length
+            == router_dhcp_dns_servers | length
+          - router_dhcp_pool_offset | int > 0
+          - router_dhcp_pool_size | int > 0
+          - ansible_facts['distribution'] in router_rtl8153_firmware_packages
+        fail_msg: >-
+          Configure the router interface names, IPv4 addresses, and DHCP pool with
+          valid non-empty values. Add the target distribution's RTL8153 firmware
+          package to router_rtl8153_firmware_packages.
+
+    - name: Install router packages
+      ansible.builtin.apt:
+        name:
+          - systemd-resolved
+          - "{{ router_rtl8153_firmware_packages[ansible_facts['distribution']] }}"
+        state: present
+        update_cache: true
+      become: true
+
+    - name: Ensure systemd-resolved configuration directory exists
+      ansible.builtin.file:
+        path: /etc/systemd/resolved.conf.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      become: true
+
+    - name: Configure LAN DNS listener
+      ansible.builtin.template:
+        src: 10-router.conf.j2
+        dest: /etc/systemd/resolved.conf.d/10-router.conf
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+      notify: Restart systemd-resolved
+
+    - name: Configure IPv4 forwarding
+      ansible.builtin.copy:
+        content: "net.ipv4.ip_forward=1\n"
+        dest: /etc/sysctl.d/99-ip-forward.conf
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+      notify: Apply sysctl settings
+
+    - name: Configure predictable LAN interface name
+      ansible.builtin.template:
+        src: 10-router-lan.link.j2
+        dest: /etc/systemd/network/10-router-lan.link
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+
+    - name: Exclude LAN interface from NetworkManager
+      when: ansible_facts.services['NetworkManager.service'] is defined
+      block:
+        - name: Ensure NetworkManager conf.d directory exists
+          ansible.builtin.file:
+            path: /etc/NetworkManager/conf.d
+            state: directory
+            owner: root
+            group: root
+            mode: "0755"
+          become: true
+
+        - name: Configure NetworkManager to ignore LAN adapter
+          ansible.builtin.copy:
+            content: |
+              [keyfile]
+              unmanaged-devices+=mac:{{ router_lan_mac_address }}
+            dest: /etc/NetworkManager/conf.d/10-router-lan.conf
+            owner: root
+            group: root
+            mode: "0644"
+          become: true
+          register: router_networkmanager_lan_config
+          notify: Restart NetworkManager
+
+        - name: Apply NetworkManager LAN exclusion before configuring LAN
+          ansible.builtin.meta: flush_handlers
+
+    - name: Configure LAN DHCP server
+      ansible.builtin.template:
+        src: 10-router-lan.network.j2
+        dest: /etc/systemd/network/10-router-lan.network
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+      notify: Restart systemd-networkd
+
+    - name: Configure router nftables rules
+      ansible.builtin.template:
+        src: "{{ item.src }}"
+        dest: "/etc/nftables.d/{{ item.dest }}"
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+      loop:
+        - src: 20-router.nft.j2
+          dest: 20-router.nft
+      notify: Restart nftables
+
+    - name: Validate assembled nftables configuration
+      ansible.builtin.command:
+        cmd: /usr/sbin/nft -c -f /etc/nftables.conf
+      become: true
+      changed_when: false
+
+    - name: Enable router services
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        enabled: true
+        state: started
+      become: true
+      loop:
+        - systemd-networkd
+        - systemd-resolved
