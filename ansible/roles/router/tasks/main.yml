@@ -20,10 +20,28 @@
           - router_dhcp_pool_offset | int > 0
           - router_dhcp_pool_size | int > 0
           - ansible_facts['distribution'] in router_rtl8153_firmware_packages
+          - >-
+            not (router_access_point_enabled | bool)
+            or (router_access_point_ssid | length > 0 and router_access_point_ssid | length <= 32)
+          - >-
+            not (router_access_point_enabled | bool)
+            or router_access_point_country_code is match('^[A-Z]{2}$')
+          - >-
+            not (router_access_point_enabled | bool)
+            or (router_access_point_channel | int >= 1 and router_access_point_channel | int <= 13)
+          - >-
+            not (router_access_point_enabled | bool)
+            or router_access_point_passphrase is defined
+          - >-
+            not (router_access_point_enabled | bool)
+            or (router_access_point_passphrase | default('') | length >= 8
+            and router_access_point_passphrase | default('') | length <= 63)
         fail_msg: >-
-          Configure the router interface names, IPv4 addresses, and DHCP pool with
-          valid non-empty values. Add the target distribution's RTL8153 firmware
-          package to router_rtl8153_firmware_packages.
+          Configure the router interface names, IPv4 addresses, DHCP pool, and,
+          when enabled, access-point settings with valid values. Define an 8 to
+          63 character router_access_point_passphrase in an Ansible Vault file.
+          Add the target distribution's RTL8153 firmware package to
+          router_rtl8153_firmware_packages.
 
     - name: Install router packages
       ansible.builtin.apt:
@@ -33,6 +51,13 @@
         state: present
         update_cache: true
       become: true
+
+    - name: Install access point package
+      ansible.builtin.apt:
+        name: hostapd
+        state: present
+      become: true
+      when: router_access_point_enabled | bool
 
     - name: Ensure systemd-resolved configuration directory exists
       ansible.builtin.file:
@@ -113,6 +138,31 @@
       become: true
       notify: Restart systemd-networkd
 
+    - name: Configure access point
+      when: router_access_point_enabled | bool
+      block:
+        - name: Configure hostapd defaults
+          ansible.builtin.copy:
+            content: |
+              DAEMON_CONF="/etc/hostapd/hostapd.conf"
+            dest: /etc/default/hostapd
+            owner: root
+            group: root
+            mode: "0644"
+          become: true
+          notify: Restart hostapd
+
+        - name: Configure hostapd
+          ansible.builtin.template:
+            src: hostapd.conf.j2
+            dest: /etc/hostapd/hostapd.conf
+            owner: root
+            group: root
+            mode: "0600"
+          become: true
+          no_log: true
+          notify: Restart hostapd
+
     - name: Configure router nftables rules
       ansible.builtin.template:
         src: "{{ item.src }}"
@@ -141,3 +191,20 @@
       loop:
         - systemd-networkd
         - systemd-resolved
+
+    - name: Enable access point service
+      ansible.builtin.systemd:
+        name: hostapd
+        masked: false
+        enabled: true
+      become: true
+      when: router_access_point_enabled | bool
+
+    - name: Start access point service when LAN interface exists
+      ansible.builtin.systemd:
+        name: hostapd
+        state: started
+      become: true
+      when:
+        - router_access_point_enabled | bool
+        - router_lan_interface in ansible_facts.interfaces

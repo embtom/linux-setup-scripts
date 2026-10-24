@@ -135,6 +135,36 @@ lease durations are configurable through the `router_dhcp_*` variables in the
 role defaults. A new `.link` file takes effect when the adapter is next
 initialized; reboot the host or reconnect the adapter after deployment.
 
+To use a supported USB Wi-Fi adapter as the router LAN access point instead,
+set the LAN adapter's permanent MAC address and enable hostapd:
+
+```yaml
+router_lan_interface: router-ap
+router_lan_mac_address: "74:19:f8:17:a7:27"
+router_access_point_enabled: true
+router_access_point_ssid: toms_bridge
+router_access_point_country_code: DE
+```
+
+The access point uses WPA2 and assigns clients addresses from the existing
+`router_lan_*` subnet and DHCP pool. Store its 8 to 63 character passphrase in
+an untracked, encrypted Vault file. Create it interactively with:
+
+```bash
+./scripts/create-router-access-point-vault
+```
+
+The script checks the WPA passphrase length, prompts for a Vault password, and
+creates the following encrypted variable:
+
+```yaml
+router_access_point_passphrase: "<your WPA passphrase>"
+```
+
+When the Vault file exists, local deployments automatically prompt for its
+password. Deploy with `./scripts/deploy --tag router`. The file is ignored by
+Git and must never be committed.
+
 ## Requirements
 
 - Debian or Ubuntu system

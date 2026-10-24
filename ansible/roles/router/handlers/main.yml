@@ -23,3 +23,10 @@
   become: true
   changed_when: false
   listen: Apply sysctl settings
+
+- name: Restart hostapd
+  ansible.builtin.systemd:
+    name: hostapd
+    state: restarted
+  become: true
+  when: router_lan_interface in ansible_facts.interfaces
