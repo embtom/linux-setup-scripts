@@ -12,6 +12,7 @@ SSH.
 | `systemd` | `systemd` | `systemd-resolved`, mDNS, NSS, and NetworkManager DNS integration |
 | `ssh` | `ssh_hardening` | OpenSSH server installation and ssh-audit-based cryptographic hardening |
 | `podman` | `podman` | Rootless Podman and Podman Compose configuration |
+| `scanner` | `sane_airscan` | Static eSCL/WSD network-scanner configuration without Avahi discovery |
 | `nftables` | `nftables` | Default input firewall with SSH, ICMP, and mDNS access |
 | `router` | `router` | Optional IPv4 router with DHCP, forwarding, and NAT |
 | `shell` | `shell_config` | Fish, Starship, direnv, fzf, pyenv, fonts, and Konsole profile |
@@ -78,6 +79,26 @@ Replace `wlp2s0` with the active network interface. The capture should show
 UDP packets to `224.0.0.251.5353` (IPv4) and/or `ff02::fb.5353` (IPv6).
 mDNS is link-local and does not cross routers; use unicast DNS for names in a
 different IP subnet.
+
+## Network Scanner Configuration
+
+The optional `sane_airscan` role installs Skanpage and configures eSCL/WSD
+scanners with static URLs. It disables automatic DNS-SD and WS-Discovery,
+avoiding an Avahi requirement at XSane or Skanpage startup. Enable it per host
+and define one or more scanner URLs:
+
+```yaml
+sane_airscan_enabled: true
+sane_airscan_disable_hpaio: true
+sane_airscan_devices:
+  - name: NPIC65336
+    url: http://npic65336.local/eSCL
+    protocol: escl
+```
+
+Set `sane_airscan_disable_hpaio: true` when the same device is configured via
+eSCL and XSane should not load HPLIP's Avahi-dependent SANE backend. This does
+not remove HPLIP's printing support.
 
 ## Router Configuration
 

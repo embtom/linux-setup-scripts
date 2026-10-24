@@ -1,0 +1,50 @@
+---
+- name: Configure static network scanners
+  when: sane_airscan_enabled | bool
+  block:
+    - name: Validate static network scanner configuration
+      ansible.builtin.assert:
+        that:
+          - sane_airscan_devices | length > 0
+          - sane_airscan_devices | selectattr('name', 'defined') | list | length
+            == sane_airscan_devices | length
+          - sane_airscan_devices | selectattr('url', 'defined') | list | length
+            == sane_airscan_devices | length
+          - sane_airscan_devices | selectattr('protocol', 'in', ['escl', 'wsd']) | list | length
+            == sane_airscan_devices | length
+        fail_msg: >-
+          Configure at least one scanner with a name, URL, and either the escl
+          or wsd protocol.
+
+    - name: Install scanner packages
+      ansible.builtin.apt:
+        name:
+          - sane-airscan
+          - skanpage
+        state: present
+      become: true
+
+    - name: Disable HPLIP SANE backend
+      ansible.builtin.file:
+        path: /etc/sane.d/dll.d/hplip
+        state: absent
+      become: true
+      when: sane_airscan_disable_hpaio | bool
+
+    - name: Ensure sane-airscan drop-in directory exists
+      ansible.builtin.file:
+        path: /etc/sane.d/airscan.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      become: true
+
+    - name: Configure static network scanners
+      ansible.builtin.template:
+        src: airscan.conf.j2
+        dest: /etc/sane.d/airscan.d/10-static-scanners.conf
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
