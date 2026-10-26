@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+VAULT_FILE="${SCRIPT_DIR}/../ansible/inventories/production/host_vars/localhost/vault.yml"
+
+
+if [[ $# -ne 0 ]]; then
+  usage >&2
+  exit 1
+fi
+
+if [[ -e "${VAULT_FILE}" ]]; then
+  echo "Vault file already exists: ${VAULT_FILE}" >&2
+  exit 1
+fi
+
+read -r -s -p "Router access point WPA passphrase: " passphrase
+printf '\n'
+read -r -s -p "Confirm WPA passphrase: " confirmation
+printf '\n'
+
+if [[ "${passphrase}" != "${confirmation}" ]]; then
+  echo "Passphrases do not match." >&2
+  exit 1
+fi
+
+vault_dir="$(dirname "${VAULT_FILE}")"
+mkdir -p "${vault_dir}"
+temp_file="$(mktemp)"
+trap 'rm -f "${temp_file}"' EXIT
+chmod 600 "${temp_file}"
+escaped_passphrase="${passphrase//\\/\\\\}"
+escaped_passphrase="${escaped_passphrase//\"/\\\"}"
+printf 'router_access_point_passphrase: "%s"\n' "${escaped_passphrase}" >"${temp_file}"
+unset passphrase confirmation
+unset escaped_passphrase
+
+ansible-vault encrypt --output "${VAULT_FILE}" "${temp_file}"
+chmod 600 "${VAULT_FILE}"
+
+echo "Created encrypted router access point vault: ${VAULT_FILE}"

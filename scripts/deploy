@@ -2,9 +2,11 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+LOCAL_VAULT_FILE="${SCRIPT_DIR}/../ansible/inventories/production/host_vars/localhost/vault.yml"
 
 HOST=""
 TAG=""
+ASK_VAULT_PASS=false
 
 usage() {
     cat <<EOF
@@ -12,6 +14,8 @@ Usage: $0 [--host HOST] [--tag TAG]
 
   -H, --host HOST   Deploy to a remote host over SSH (default: localhost)
   -t, --tag TAG     Run only the specified Ansible tag
+      --ask-vault-pass
+                    Prompt for the password of local Ansible Vault files
       --help        Show this help
 EOF
 }
@@ -25,6 +29,10 @@ while [[ $# -gt 0 ]]; do
         -t | --tag)
             TAG="${2:?Missing tag value}"
             shift 2
+            ;;
+        --ask-vault-pass)
+            ASK_VAULT_PASS=true
+            shift
             ;;
         --help)
             usage
@@ -53,6 +61,12 @@ if [[ -n "${TAG}" ]]; then
     TAG_ARGS=(--tags "${TAG}")
 fi
 
+VAULT_ARGS=()
+if [[ "${ASK_VAULT_PASS}" == true ]] ||
+    { [[ -f "${LOCAL_VAULT_FILE}" ]] && [[ -z "${HOST}" || "${HOST}" == "localhost" || "${HOST}" == "127.0.0.1" || "${HOST}" == "::1" ]]; }; then
+    VAULT_ARGS=(--ask-vault-pass)
+fi
+
 (
     cd "${SCRIPT_DIR}/../ansible"
     ansible-playbook \
@@ -61,5 +75,6 @@ fi
         --ask-become-pass \
         "${LIMIT[@]}" \
         "${HOST_ARGS[@]}" \
+        "${VAULT_ARGS[@]}" \
         "${TAG_ARGS[@]}"
 )

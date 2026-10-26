@@ -12,6 +12,7 @@ SSH.
 | `systemd` | `systemd` | `systemd-resolved`, mDNS, NSS, and NetworkManager DNS integration |
 | `ssh` | `ssh_hardening` | OpenSSH server installation and ssh-audit-based cryptographic hardening |
 | `podman` | `podman` | Rootless Podman and Podman Compose configuration |
+| `scanner` | `sane_airscan` | Static eSCL/WSD network-scanner configuration without Avahi discovery |
 | `nftables` | `nftables` | Default input firewall with SSH, ICMP, and mDNS access |
 | `router` | `router` | Optional IPv4 router with DHCP, forwarding, and NAT |
 | `shell` | `shell_config` | Fish, Starship, direnv, fzf, pyenv, fonts, and Konsole profile |
@@ -79,6 +80,26 @@ UDP packets to `224.0.0.251.5353` (IPv4) and/or `ff02::fb.5353` (IPv6).
 mDNS is link-local and does not cross routers; use unicast DNS for names in a
 different IP subnet.
 
+## Network Scanner Configuration
+
+The optional `sane_airscan` role installs Skanpage and configures eSCL/WSD
+scanners with static URLs. It disables automatic DNS-SD and WS-Discovery,
+avoiding an Avahi requirement at XSane or Skanpage startup. Enable it per host
+and define one or more scanner URLs:
+
+```yaml
+sane_airscan_enabled: true
+sane_airscan_disable_hpaio: true
+sane_airscan_devices:
+  - name: NPIC65336
+    url: http://npic65336.local/eSCL
+    protocol: escl
+```
+
+Set `sane_airscan_disable_hpaio: true` when the same device is configured via
+eSCL and XSane should not load HPLIP's Avahi-dependent SANE backend. This does
+not remove HPLIP's printing support.
+
 ## Router Configuration
 
 The `router` role is disabled by default to avoid changing a normal workstation
@@ -113,6 +134,36 @@ LAN access to the router and adds forwarding plus source NAT. The DHCP pool and
 lease durations are configurable through the `router_dhcp_*` variables in the
 role defaults. A new `.link` file takes effect when the adapter is next
 initialized; reboot the host or reconnect the adapter after deployment.
+
+To use a supported USB Wi-Fi adapter as the router LAN access point instead,
+set the LAN adapter's permanent MAC address and enable hostapd:
+
+```yaml
+router_lan_interface: router-ap
+router_lan_mac_address: "74:19:f8:17:a7:27"
+router_access_point_enabled: true
+router_access_point_ssid: toms_bridge
+router_access_point_country_code: DE
+```
+
+The access point uses WPA2 and assigns clients addresses from the existing
+`router_lan_*` subnet and DHCP pool. Store its 8 to 63 character passphrase in
+an untracked, encrypted Vault file. Create it interactively with:
+
+```bash
+./scripts/create-router-access-point-vault
+```
+
+The script checks the WPA passphrase length, prompts for a Vault password, and
+creates the following encrypted variable:
+
+```yaml
+router_access_point_passphrase: "<your WPA passphrase>"
+```
+
+When the Vault file exists, local deployments automatically prompt for its
+password. Deploy with `./scripts/deploy --tag router`. The file is ignored by
+Git and must never be committed.
 
 ## Requirements
 

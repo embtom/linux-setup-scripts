@@ -18,6 +18,12 @@ router_dhcp_pool_size: 50
 router_dhcp_default_lease_time: 12h
 router_dhcp_max_lease_time: 24h
 
+# Optional hostapd access point that replaces the wired LAN interface.
+router_access_point_enabled: false
+router_access_point_ssid: ""
+router_access_point_country_code: DE
+router_access_point_channel: 6
+
 # Distribution packages that provide the RTL8153 USB Ethernet firmware patch.
 router_rtl8153_firmware_packages:
   Debian: firmware-realtek

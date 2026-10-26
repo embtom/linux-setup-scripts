@@ -28,6 +28,8 @@
       tags: [scripts]
     - role: systemd
       tags: [systemd]
+    - role: sane_airscan
+      tags: [scanner]
     - role: vscode
       tags: [vscode]
     - role: yakuake

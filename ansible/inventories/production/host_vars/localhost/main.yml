@@ -1,0 +1,15 @@
+---
+router_enabled: false
+router_wan_interface: wlp2s0
+router_lan_interface: router-ap
+router_lan_mac_address: "74:19:f8:17:a7:27"
+router_access_point_enabled: true
+router_access_point_ssid: toms_bridge
+router_access_point_country_code: DE
+
+sane_airscan_enabled: true
+sane_airscan_disable_hpaio: true
+sane_airscan_devices:
+  - name: NPIC65336
+    url: http://npic65336.local/eSCL
+    protocol: escl
